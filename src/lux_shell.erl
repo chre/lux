@@ -227,8 +227,7 @@ shell_wait_for_event(#cstate{name = _Name} = C, OrigC) ->
         {change_mode, From, Mode, Cmd, CmdStack}
           when Mode =:= resume; Mode =:= suspend ->
             C2 = change_mode(C, From, Mode, Cmd, CmdStack),
-            C3 = match_patterns(C2, C2#cstate.actual),
-            expect_more(C3);
+            expect_more(C2);
         {progress, _From, Level} ->
             shell_wait_for_event(C#cstate{progress = Level}, OrigC);
         {eval, From, Cmd} ->
@@ -804,7 +803,7 @@ expect(#cstate{state_changed = true,
             %% Suspended
             undefined = Expected, % assert
             undefined = C#cstate.timer, % assert
-            match_patterns(C, Actual);
+            C;
         undefined when C#cstate.mode =:= resume ->
             %% Nothing to wait for
             undefined = C#cstate.timer, % assert
@@ -967,10 +966,8 @@ log_multi_nomatch(C, _Single, Actual) ->
 
 match_patterns(C, Actual) ->
     %% Match against these patterns when
-    %%   - mode change
     %%   - main pattern matched
     %%   - main pattern timed out
-    %%   - state change in suspended shell
     %%   - shell exit
     C2 = match_fail_pattern(C, Actual),
     C3 = match_success_pattern(C2, Actual),
